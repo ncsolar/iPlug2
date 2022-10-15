@@ -165,7 +165,7 @@ Linear::Linear(
 ) : Buffer(receptive_field)
 {
   if (params.size() != (receptive_field + (_bias ? 1 : 0)))
-    throw std::exception("Params vector does not match expected size based on architecture parameters");
+    throw std::runtime_error("Params vector does not match expected size based on architecture parameters");
 
   this->_weight.resize(this->_receptive_field);
   // Pass in in reverse order so that dot products work out of the box.
@@ -426,7 +426,7 @@ void convnet::ConvNetBlock::process_(
   else if (this->activation == "ReLU")
     relu_(output, i_start, i_end);
   else
-    throw std::exception("Unrecognized activation");
+    throw std::runtime_error("Unrecognized activation");
 }
 
 int convnet::ConvNetBlock::get_out_channels() const
@@ -473,7 +473,7 @@ convnet::ConvNet::ConvNet(
   this->_block_vals.resize(this->_blocks.size() + 1);
   this->_head = _Head(channels, it);
   if (it != params.end())
-    throw std::exception("Didn't touch all the params when initializing wavenet");
+    throw std::runtime_error("Didn't touch all the params when initializing wavenet");
   this->_reset_anti_pop_();
 }
 

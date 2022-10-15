@@ -10,6 +10,7 @@
 
 #include <Eigen/Dense>
 #include "IPlugConstants.h"
+#include <unordered_map>
 
 enum EArchitectures
 {

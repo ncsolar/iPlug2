@@ -43,7 +43,7 @@ void wavenet::_Layer::process_(
   else if (this->_activation == "ReLU")
     relu_(this->_z, 0, channels, 0, this->_z.cols());
   else
-    throw std::exception("Unrecognized activation.");
+    throw std::runtime_error("Unrecognized activation.");
   if (this->_gated) {
     sigmoid_(this->_z, channels, 2 * channels, 0, this->_z.cols());
      this->_z.topRows(channels).array() *= this->_z.bottomRows(channels).array();
@@ -138,7 +138,7 @@ void wavenet::_LayerArray::set_num_frames_(const int num_frames)
       << ") to get out of the recptive field ("
       << this->_get_receptive_field()
       << "); copy errors could occur!\n";
-    throw std::exception(ss.str().c_str());
+    throw std::runtime_error(ss.str().c_str());
   }
   for (int i = 0; i < this->_layers.size(); i++)
     this->_layers[i].set_num_frames_(num_frames);
@@ -241,7 +241,7 @@ void wavenet::_Head::_apply_activation_(Eigen::MatrixXf& x)
   else if (this->_activation == "ReLU")
     relu_(x);
   else
-    throw std::exception("Unrecognized activation.");
+    throw std::runtime_error("Unrecognized activation.");
 }
 
 // WaveNet ====================================================================
@@ -258,7 +258,7 @@ wavenet::WaveNet::WaveNet(
   _head_scale(head_scale)
 {
   if (with_head)
-    throw std::exception("Head not implemented!");
+    throw std::runtime_error("Head not implemented!");
   this->_init_parametric_(parametric);
   for (int i = 0; i < layer_array_params.size(); i++) {
     this->_layer_arrays.push_back(
@@ -284,7 +284,7 @@ wavenet::WaveNet::WaveNet(
           << ") doesn't match head_size of preceding layer ("
           << layer_array_params[i - 1].head_size
           << "!\n";
-        throw std::exception(ss.str().c_str());
+        throw std::runtime_error(ss.str().c_str());
       }
     this->_head_arrays.push_back(Eigen::MatrixXf(layer_array_params[i].head_size, 0));
   }
@@ -310,10 +310,10 @@ void wavenet::WaveNet::set_params_(std::vector<float>& params)
     for (int i = 0; i < params.size(); i++)
       if (params[i] == *it) {
         ss << "Parameter mismatch: assigned " << i+1 << " parameters, but " << params.size() << " were provided.";
-        throw std::exception(ss.str().c_str());
+        throw std::runtime_error(ss.str().c_str());
       }
     ss << "Parameter mismatch: provided " << params.size() << " weights, but the model expects more.";
-    throw std::exception(ss.str().c_str());
+    throw std::runtime_error(ss.str().c_str());
   }
 }
 

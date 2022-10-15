@@ -13,14 +13,14 @@ void verify_config_version(const std::string version)
 {
   const std::unordered_set<std::string> supported_versions({"0.2.0", "0.2.1", "0.3.0", "0.3.1", "0.4.0"});
   if (supported_versions.find(version) == supported_versions.end())
-    throw std::exception("Unsupported config version");
+    throw std::runtime_error("Unsupported config version");
 }
 
 std::unique_ptr<DSP> get_dsp(const std::filesystem::path dirname)
 {
   const std::filesystem::path config_filename = dirname / std::filesystem::path("config.json");
   if (!std::filesystem::exists(config_filename))
-    throw std::exception("Config JSON doesn't exist!\n");
+    throw std::runtime_error("Config JSON doesn't exist!\n");
   std::ifstream i(config_filename);
   nlohmann::json j;
   i >> j;
@@ -80,17 +80,21 @@ std::unique_ptr<DSP> get_dsp(const std::filesystem::path dirname)
     const bool with_head = config["head"] == NULL;
     const float head_scale = config["head_scale"];
     std::vector<float> params = numpy_util::load_to_vector(dirname / std::filesystem::path("weights.npy"));
+      
+// Solution from:
+//https://stackoverflow.com/questions/73874619/compilation-issue-on-mac-error-no-matching-constructor-for-initialization-of-w/73956681#73956681
+    auto my_json = architecture == "CatWaveNet" ? config["parametric"] : nlohmann::json{};
     return std::make_unique<wavenet::WaveNet>(
-      layer_array_params,
-      head_scale,
-      with_head,
-      architecture == "CatWaveNet" ? config["parametric"] : nlohmann::json{},
-      params
-    );
+          layer_array_params,
+          head_scale,
+          with_head,
+          my_json,
+          params
+        );
   }
   else
   {
-    throw std::exception("Unrecognized architecture");
+      throw std::runtime_error("Unrecognized architecture");
   }
 }
 
@@ -101,7 +105,8 @@ std::unique_ptr<DSP> get_hard_dsp()
 
   // Uncomment the line that corresponds to the model type that you're using.
   
-  //return std::make_unique<convnet::ConvNet>(CHANNELS, DILATIONS, BATCHNORM, ACTIVATION, PARAMS);
+  return std::make_unique<convnet::ConvNet>(CHANNELS, DILATIONS, BATCHNORM, ACTIVATION, PARAMS);
   //return std::make_unique<wavenet::WaveNet>(LAYER_ARRAY_PARAMS, HEAD_SCALE, WITH_HEAD, PARAMETRIC, PARAMS);
-  return std::make_unique<lstm::LSTM>(NUM_LAYERS, INPUT_SIZE, HIDDEN_SIZE, PARAMS, PARAMETRIC);
+  //return std::make_unique<lstm::LSTM>(NUM_LAYERS, INPUT_SIZE, HIDDEN_SIZE, PARAMS, PARAMETRIC);
+    
 }
